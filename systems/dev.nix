@@ -1,4 +1,7 @@
-{ pkgs, packages, nixpkgs, ... }:
+{ lib, pkgs, packages, nixpkgs, ... }:
+let
+  ngrokDomain = "...";
+in
 {
   networking.hostName = "borgnetzwerk-dev";
   boot.isContainer = true;
@@ -10,6 +13,8 @@
   environment.systemPackages = with pkgs; [
     #rover
     packages.rover
+    ngrok
+    vim
   ];
 
   nix.extraOptions = ''
@@ -28,7 +33,10 @@
     enable = true;
 
     virtualHosts.localhost = {
-      root = packages.dashboardduck.out;
+      root = (packages.dashboardduck.override {
+        #FIXME don't bake it in, use a config file
+        overrideOAuthUrl = ngrokDomain;
+      }).out;
       listen = [ {
         addr = "127.0.0.1";
         port = 8000;
@@ -56,6 +64,45 @@
       StateDirectory = "integrationindri";
     };
   };
+
+  systemd.services.ngrok = {
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+
+    unitConfig.ConditionPathExists = [
+      "/root/.config/ngrok/ngrok.yml"
+      "/root/ngrok-domain.txt"
+    ];
+
+    script = ''
+      exec ${pkgs.ngrok}/bin/ngrok http \
+        --url="$(cat $CREDENTIALS_DIRECTORY/domain)" \
+        --config=$CREDENTIALS_DIRECTORY/authtoken.yml \
+        http://127.0.0.1:5000
+    '';
+
+    serviceConfig = {
+      DynamicUser = true;
+      #StateDirectory = "ngrok";
+
+      LoadCredential = [
+        # create this file with: ngrok config add-authtoken ...
+        "authtoken.yml:/root/.config/ngrok/ngrok.yml"
+        # https://your-domain.ngrok-free.dev  (no trailing slash)
+        "domain:/root/ngrok-domain.txt"
+      ];
+      # provide default to make missing file for LoadCredential not fatal
+      SetCredential = [ "authtoken.yml:" "domain:https://invalid" ];
+    };
+  };
+
+  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
+    #FIXME Elastic License v2 is probably fine but we should check!
+    #  see https://www.apollographql.com/trust/licensing
+    "router"
+    #FIXME unfree license!
+    "ngrok"
+  ];
 
   users.users.rover.isSystemUser = true;
   users.users.rover.group = "rover";

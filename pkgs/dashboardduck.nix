@@ -1,10 +1,12 @@
 # see https://nixos.org/manual/nixpkgs/stable/#javascript-pnpm
 {
   src,
+  lib,
   stdenv,
   nodejs,
   pnpm_10,
   imagemagick,
+  overrideOAuthUrl ? null,
 }:
 let
   pnpm = pnpm_10;
@@ -25,6 +27,14 @@ stdenv.mkDerivation (finalAttrs: {
     fetcherVersion = 2;
     hash = "sha256-5xe0WYOJmHttD0R9jZwMo1grXv5szf0wRgAZfnwf8T0=";
   };
+
+  inherit overrideOAuthUrl;
+  postPatch = lib.optionalString (overrideOAuthUrl != null) ''
+    substituteInPlace \
+      src/pages/integrationpage/integrationContent/MirahezeCard.tsx \
+      src/pages/integrationpage/integrationContent/WikibaseCard.tsx \
+      --replace-fail 'https://preferably-valid-ibex.ngrok-free.app' "$overrideOAuthUrl"
+  '';
 
   buildPhase = ''
     pnpm codegen  # updates src/__generated__/
