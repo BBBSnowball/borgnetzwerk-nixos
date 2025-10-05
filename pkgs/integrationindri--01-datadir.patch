@@ -1,0 +1,28 @@
+diff --git a/pythonServer/dbs/DBSIndri.py b/pythonServer/dbs/DBSIndri.py
+index 391814d..67ee3d3 100644
+--- a/pythonServer/dbs/DBSIndri.py
++++ b/pythonServer/dbs/DBSIndri.py
+@@ -16,8 +16,8 @@ db_semaphore = threading.Semaphore(1)
+ class DatabaseIndri:
+
+     def __init__(self):
+-        (head, tail) = os.path.split(__file__)
+-        path = os.path.join(head, "database.db")
++        datadir = os.environ.get("DATADIR", os.path.split(__file__)[0])
++        path = os.path.join(datadir, "database.db")
+         self.con = sqlite3.connect(path)
+         self.cur = self.con.cursor()
+
+diff --git a/pythonServer/dbs/FileDB.py b/pythonServer/dbs/FileDB.py
+index 04faafc..1ace395 100644
+--- a/pythonServer/dbs/FileDB.py
++++ b/pythonServer/dbs/FileDB.py
+@@ -5,7 +5,7 @@ import pickle
+
+ class FileDB:
+     def __init__(self, *argv):
+-        (head, tail) = os.path.split(__file__)
++        head = os.environ.get("DATADIR", os.path.split(__file__)[0])
+         if len(argv) > 1:
+             t = os.path.join(argv[0], *(argv[1:]))
+             self.path_json = os.path.join(head, f"{t}.json")

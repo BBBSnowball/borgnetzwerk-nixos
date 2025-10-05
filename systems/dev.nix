@@ -48,8 +48,13 @@
   systemd.services.integrationindri = {
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
-    serviceConfig.ExecStart = ''${packages.integrationindri}/bin/integrationindri'';
-    serviceConfig.DynamicUser = true;
+
+    environment.DATADIR = "/var/lib/integrationindri";
+    serviceConfig = {
+      ExecStart = ''${packages.integrationindri}/bin/integrationindri'';
+      DynamicUser = true;
+      StateDirectory = "integrationindri";
+    };
   };
 
   users.users.rover.isSystemUser = true;

@@ -4,7 +4,7 @@
   stdenv,
   callPackage,
   mkShell,
-  writeShellScriptBin,
+  writeShellScript,
 }:
 let
   packageOverrides = callPackage ./integrationindri-python-packages.nix { };
@@ -20,27 +20,38 @@ let
   shell = mkShell {
     nativeBuildInputs = [ pythonWithPackages ];
   };
-
+in
+stdenv.mkDerivation {
   pname = "integrationindri";
   version = "0-unstable-${src.lastModifiedDate}-${src.shortRev}";
-in
-writeShellScriptBin "integrationindri" ''
-  export PYTHONPATH=${src}/pythonServer
-  ${pythonWithPackages}/bin/python -m flask --app server run
-'' // {
-  inherit pname version src;
-  inherit packageOverrides python pythonWithPackages shell;
+  inherit src;
 
-  graphql = stdenv.mkDerivation {
-    inherit pname version src;
+  patches = [
+    ./integrationindri--01-datadir.patch
+  ];
 
-    buildPhase = ''
-      PYTHONPATH=pythonServer ${pythonWithPackages}/bin/strawberry export-schema api.schema >schema.graphql
-    '';
+  outputs = [ "out" "graphql" ];
 
-    installPhase = ''
-      mkdir $out
-      cp schema.graphql $out/
-    '';
+  startScript = writeShellScript "integrationindri" ''
+    export PYTHONPATH=@out@/share/integrationindri
+    ${pythonWithPackages}/bin/python -m flask --app server run
+  '';
+
+  buildPhase = ''
+    PYTHONPATH=pythonServer ${pythonWithPackages}/bin/strawberry export-schema api.schema >schema.graphql
+  '';
+
+  installPhase = ''
+    mkdir -p $out/{bin,share}
+    substitute $startScript $out/bin/integrationindri --replace @out@ $out
+    chmod +x $out/bin/integrationindri
+    cp -r pythonServer $out/share/integrationindri
+
+    mkdir $graphql
+    cp schema.graphql $graphql/
+  '';
+
+  passthru = {
+    inherit packageOverrides python pythonWithPackages shell;
   };
 }
