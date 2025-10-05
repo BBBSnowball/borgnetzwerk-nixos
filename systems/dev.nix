@@ -1,6 +1,5 @@
 { lib, pkgs, packages, nixpkgs, ... }:
 let
-  ngrokDomain = "...";
 in
 {
   networking.hostName = "borgnetzwerk-dev";
@@ -33,16 +32,14 @@ in
     enable = true;
 
     virtualHosts.localhost = {
-      root = (packages.dashboardduck.override {
-        #FIXME don't bake it in, use a config file
-        overrideOAuthUrl = ngrokDomain;
-      }).out;
+      root = packages.dashboardduck.out;
       listen = [ {
         addr = "127.0.0.1";
         port = 8000;
       } ];
 
       locations."/favicon.ico".root = packages.dashboardduck.favicon;
+      locations."= /oauthDomain.txt".alias = "/run/credentials/nginx.service/domain";
 
       # single-page application rewrites the URL but would fail on reload
       # so we have to fallback to /index.html.
@@ -54,6 +51,14 @@ in
         tryFiles = "$uri =404";
       };
     };
+  };
+  systemd.services.nginx.serviceConfig = {
+    LoadCredential = [
+      # https://your-domain.ngrok-free.dev  (no trailing slash)
+      "domain:/root/ngrok-domain.txt"
+    ];
+    # provide default to make missing file for LoadCredential not fatal
+    SetCredential = [ "domain:https://invalid" ];
   };
 
   systemd.services.searchsnail = {

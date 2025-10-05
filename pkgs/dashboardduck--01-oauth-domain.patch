@@ -1,0 +1,64 @@
+diff --git a/src/index.tsx b/src/index.tsx
+index 55f29bf..f51a000 100644
+--- a/src/index.tsx
++++ b/src/index.tsx
+@@ -1,13 +1,26 @@
+ import React from 'react';
+ import ReactDOM from 'react-dom/client';
+-import App from './App';
++//import App from './App';
++
++async function loadConfig() {
++  const res = await fetch('/oauthDomain.txt');
++  if (!res.ok) {
++    window.oauthDomain = "https://invalid";
++  } else {
++    window.oauthDomain = (await res.text()).trim();
++  }
++}
+
+ const rootEl = document.getElementById('root');
+ if (rootEl) {
+-  const root = ReactDOM.createRoot(rootEl);
+-  root.render(
+-    <React.StrictMode>
+-      <App />
+-    </React.StrictMode>,
+-  );
++  loadConfig()
++  .then(() => import('./App'))
++  .then(({ default: App }) => {
++    const root = ReactDOM.createRoot(rootEl);
++    root.render(
++      <React.StrictMode>
++        <App />
++      </React.StrictMode>,
++    );
++  });
+ }
+diff --git a/src/pages/integrationpage/integrationContent/MirahezeCard.tsx b/src/pages/integrationpage/integrationContent/MirahezeCard.tsx
+index 8129000..f2ca4a5 100644
+--- a/src/pages/integrationpage/integrationContent/MirahezeCard.tsx
++++ b/src/pages/integrationpage/integrationContent/MirahezeCard.tsx
+@@ -31,7 +31,7 @@ const WikibaseCardContent: React.FC<User> = ({ userId }) => {
+   }
+ };
+
+-const urlPrefix = 'https://preferably-valid-ibex.ngrok-free.app/oAuth/';
++const urlPrefix = window.oauthDomain + '/oAuth/';
+
+ interface UserConsumer {
+   userId: string;
+diff --git a/src/pages/integrationpage/integrationContent/WikibaseCard.tsx b/src/pages/integrationpage/integrationContent/WikibaseCard.tsx
+index 5816797..10298d8 100644
+--- a/src/pages/integrationpage/integrationContent/WikibaseCard.tsx
++++ b/src/pages/integrationpage/integrationContent/WikibaseCard.tsx
+@@ -62,7 +62,7 @@ export const WikibaseUserConsumer: React.FC<{ ckey: string; secret: string }> =
+   );
+ };
+
+-const urlPrefix = 'https://preferably-valid-ibex.ngrok-free.app/oAuth/';
++const urlPrefix = window.oauthDomain + '/oAuth/';
+
+ interface UserConsumer {
+   userId: string;

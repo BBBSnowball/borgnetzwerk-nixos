@@ -7,5 +7,4 @@ Create an account and then create the following files in the dev container:
    `ngrok config add-authtoken ...`
 3. Write the dev domain into the file `/root/ngrok-domain.txt`
   (without any trailing slash)
-4. Write the dev domain into `systems/dev.nix`: `ngrokDomain = ...`
 
