@@ -42,12 +42,17 @@ stdenv.mkDerivation (finalAttrs: {
   #doCheck = true;  #FIXME test fails because expected result is missing
   doCheck = false;
 
+  outputs = [ "out" "graphql" ];
+
   installPhase = ''
     mkdir -p $out/{bin,share/searchsnail}
     cp build/libs/searchsnail-0.0.1-SNAPSHOT.jar $out/share/searchsnail/searchsnail.jar
 
     makeWrapper ${lib.getExe jre} $out/bin/searchsnail \
       --add-flags "-jar $out/share/searchsnail/searchsnail.jar"
+
+    mkdir $graphql
+    cp src/main/resources/graphql/schema.graphqls $graphql/schema.graphql
   '';
 
   meta.sourceProvenance = with lib.sourceTypes; [

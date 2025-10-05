@@ -30,4 +30,17 @@ writeShellScriptBin "integrationindri" ''
 '' // {
   inherit pname version src;
   inherit packageOverrides python pythonWithPackages shell;
+
+  graphql = stdenv.mkDerivation {
+    inherit pname version src;
+
+    buildPhase = ''
+      PYTHONPATH=pythonServer ${pythonWithPackages}/bin/strawberry export-schema api.schema >schema.graphql
+    '';
+
+    installPhase = ''
+      mkdir $out
+      cp schema.graphql $out/
+    '';
+  };
 }

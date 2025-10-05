@@ -8,7 +8,8 @@
   system.stateVersion = "25.05";  # don't change without reading the documentation
 
   environment.systemPackages = with pkgs; [
-    rover
+    #rover
+    packages.rover
   ];
 
   nix.extraOptions = ''
@@ -41,27 +42,51 @@
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig.ExecStart = ''${packages.searchsnail}/bin/searchsnail'';
+    serviceConfig.DynamicUser = true;
   };
 
   systemd.services.integrationindri = {
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig.ExecStart = ''${packages.integrationindri}/bin/integrationindri'';
+    serviceConfig.DynamicUser = true;
   };
 
+  users.users.rover.isSystemUser = true;
+  users.users.rover.group = "rover";
+  users.groups.rover = {};
+
   systemd.services.rover = let
-    config = packages.dashboardduck.graphql;
+    config = packages.rover-config;
+    rover = packages.rover;
   in {
     after = [ "network.target" "searchsnail.service" "integrationindri.service" ];
     wantedBy = [ "multi-user.target" ];
     # restart rover if these services restart because rover will fetch their graph config on start
     bindsTo = [ "searchsnail.service" "integrationindri.service" ];
 
-    path = with pkgs; [ rover ];
+    path = [ rover pkgs.strace ];
     environment.CONFIG = config;
-    #FIXME don't use rover in dev mode!
-    serviceConfig.ExecStart = ''
-      ${pkgs.rover}/bin/rover dev --supergraph-config ${config}/supergraph_config.yaml --polling-interval 10 --elv2-license accept
+    serviceConfig.StateDirectory = "rover";
+
+    # rover will download and run binaries so we cannot have its home dir mounted with noexec.
+    #serviceConfig.DynamicUser = true;
+    serviceConfig.User = "rover";
+
+    script = ''
+      cd /var/lib/rover
+      mkdir -p config home
+      export HOME=$PWD/home
+      cd config
+      cp ${config}/* .
+      chmod -R u+w .
+
+      # FIXME use this instead of dev mode
+      rover supergraph compose --config ./supergraph_config.yaml --output supergraph.graphql
+
+      #FIXME don't use rover in dev mode!
+      exec rover dev --supergraph-config ./supergraph_config.yaml --polling-interval 10 --elv2-license accept
+      #--log debug
     '';
   };
 }

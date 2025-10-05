@@ -1,0 +1,13 @@
+# see https://www.apollographql.com/docs/rover/commands/supergraphs#yaml-configuration-file
+federation_version: =2.4.7
+subgraphs:
+  media:
+    routing_url: http://localhost:8080/graphql
+    schema:
+      file: ./searchsnail.graphql
+  integration:
+    routing_url: http://localhost:5000/graphql
+    schema:
+      #subgraph_url: http://localhost:5000/graphql
+      file: ./integrationindri.graphql
+

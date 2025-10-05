@@ -43,6 +43,7 @@
         dashboardduck = pkgs.callPackage ./pkgs/dashboardduck.nix { src = src-dashboardduck; };
         searchsnail = pkgs.callPackage ./pkgs/searchsnail.nix { src = src-searchsnail; };
         integrationindri = pkgs.callPackage ./pkgs/integrationindri.nix { src = src-integrationindri; };
+        rover-config = pkgs.callPackage ./pkgs/rover-config.nix { inherit packages; };
 
         #pip2nix = let
         #  make-pip2nix = {pythonVersion}: {
@@ -55,6 +56,15 @@
         #  shortVersion = builtins.replaceStrings [ "." ] [ "" ] pkgs.python3.pythonVersion;
         #in (make-pip2nix { pythonVersion = shortVersion; });
         pip2nix = inputs.pip2nix.packages.${system}.default;
+
+        # rover downloads additional components to $HOME
+        rover = pkgs.buildFHSEnv {
+          name = "rover";
+          targetPkgs = pkgs: (with pkgs; [
+            pkgs.rover
+          ]);
+          runScript = "rover";
+        };
       };
 
       apps = rec {
