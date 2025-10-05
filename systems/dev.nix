@@ -122,7 +122,7 @@ in
   ];
 
   nixpkgs.overlays = [
-    (import ../pkgs/router-overlay.nix)
+    (import ../pkgs/rover/router-overlay.nix)
   ];
 
   users.users.rover.isSystemUser = true;

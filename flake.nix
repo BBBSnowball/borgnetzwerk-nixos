@@ -40,10 +40,10 @@
   in
     eachDefaultSystemSmart ({ system, pkgs }: rec {
       packages = rec {
-        dashboardduck = pkgs.callPackage ./pkgs/dashboardduck.nix { src = src-dashboardduck; };
-        searchsnail = pkgs.callPackage ./pkgs/searchsnail.nix { src = src-searchsnail; };
-        integrationindri = pkgs.callPackage ./pkgs/integrationindri.nix { src = src-integrationindri; };
-        rover-config = pkgs.callPackage ./pkgs/rover-config.nix { inherit packages; };
+        dashboardduck = pkgs.callPackage ./pkgs/dashboardduck/dashboardduck.nix { src = src-dashboardduck; };
+        searchsnail = pkgs.callPackage ./pkgs/searchsnail/searchsnail.nix { src = src-searchsnail; };
+        integrationindri = pkgs.callPackage ./pkgs/integrationindri/integrationindri.nix { src = src-integrationindri; };
+        rover-config = pkgs.callPackage ./pkgs/rover/rover-config.nix { inherit packages; };
 
         #pip2nix = let
         #  make-pip2nix = {pythonVersion}: {
@@ -73,11 +73,13 @@
         updateSearchsnailDeps = {
           type = "app";
           program = packages.searchsnail.mitmCache.updateScript.outPath;
+          meta.description = ''update cached dependencies for searchsnail (fetchGradle / mitmCache)'';
         };
 
         pip2nix = {
           type = "app";
           program = "${packages.pip2nix}/bin/pip2nix";
+          meta.description = ''run pip2nix'';
         };
 
         updateIntegrationindriDeps = {
@@ -86,9 +88,10 @@
             #nix run github:nix-community/pip2nix -- generate -r requirements.txt
             ${packages.pip2nix}/bin/pip2nix generate \
               -r ${src-integrationindri}/pythonServer/requirements.txt \
-              --output pkgs/integrationindri-python-packages.nix \
+              --output pkgs/integrationindri/python-packages.nix \
               "$@"
           '');
+          meta.description = ''update cached dependencies for integrationindri (pip2nix)'';
         };
       };
 

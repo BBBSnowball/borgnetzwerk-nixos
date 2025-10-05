@@ -7,7 +7,7 @@
   writeShellScript,
 }:
 let
-  packageOverrides = callPackage ./integrationindri-python-packages.nix { };
+  packageOverrides = callPackage ./python-packages.nix { };
   packageOverrides2 = final: prev: prev // {
     libcst = python3.pkgs.libcst;  # needs Rust dependencies
     PyYAML = python3.pkgs.pyyaml;  # avoid clashing files because libcst also uses this
@@ -27,7 +27,7 @@ stdenv.mkDerivation {
   inherit src;
 
   patches = [
-    ./integrationindri--01-datadir.patch
+    ./01-datadir.patch
   ];
 
   outputs = [ "out" "graphql" ];

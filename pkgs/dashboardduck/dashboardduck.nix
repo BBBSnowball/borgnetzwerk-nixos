@@ -16,7 +16,7 @@ stdenv.mkDerivation (finalAttrs: {
   inherit src;
 
   patches = [
-    ./dashboardduck--01-oauth-domain.patch
+    ./01-oauth-domain.patch
   ];
 
   nativeBuildInputs = [
