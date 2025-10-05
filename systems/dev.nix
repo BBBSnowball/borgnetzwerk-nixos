@@ -43,6 +43,16 @@ in
       } ];
 
       locations."/favicon.ico".root = packages.dashboardduck.favicon;
+
+      # single-page application rewrites the URL but would fail on reload
+      # so we have to fallback to /index.html.
+      locations."/" = {
+        tryFiles = "$uri $uri/ /index.html";
+      };
+      # ... but not for static files
+      locations."/static/" = {
+        tryFiles = "$uri =404";
+      };
     };
   };
 
