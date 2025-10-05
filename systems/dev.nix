@@ -85,7 +85,7 @@
       rover supergraph compose --config ./supergraph_config.yaml --output supergraph.graphql
 
       #FIXME don't use rover in dev mode!
-      exec rover dev --supergraph-config ./supergraph_config.yaml --polling-interval 10 --elv2-license accept
+      exec rover dev --supergraph-config ./supergraph_config.yaml --polling-interval 10 --elv2-license accept --router-config ./router_config.yaml
       #--log debug
     '';
   };

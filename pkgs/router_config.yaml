@@ -1,0 +1,15 @@
+cors:
+  # Set to true to allow any origin
+  allow_any_origin: false
+
+  # List of accepted origins
+  # (Ignored if allow_any_origin is true)
+  # It does not have any path section, so no trailing slash.
+  origins:
+    - https://studio.apollographql.com # Keep this if GraphOS Studio should be able to run queries against our router
+    # our local test URL
+    - http://localhost:8000
+
+  match_origins:
+    # HTTPS via ngrok service
+    - "^https://([a-z0-9]+[-]?)*.ngrok-free.app$"
