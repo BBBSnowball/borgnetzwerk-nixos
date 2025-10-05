@@ -1,5 +1,7 @@
 { lib, pkgs, packages, nixpkgs, ... }:
 let
+  # slow build but more suitable for production use
+  useRouter = true;
 in
 {
   networking.hostName = "borgnetzwerk-dev";
@@ -14,7 +16,7 @@ in
     packages.rover
     ngrok
     vim
-  ];
+  ] ++ lib.optionals useRouter [ router ];
 
   nix.extraOptions = ''
     experimental-features = nix-command flakes
@@ -119,6 +121,10 @@ in
     "ngrok"
   ];
 
+  nixpkgs.overlays = [
+    (import ../pkgs/router-overlay.nix)
+  ];
+
   users.users.rover.isSystemUser = true;
   users.users.rover.group = "rover";
   users.groups.rover = {};
@@ -132,7 +138,7 @@ in
     # restart rover if these services restart because rover will fetch their graph config on start
     bindsTo = [ "searchsnail.service" "integrationindri.service" ];
 
-    path = [ rover pkgs.strace ];
+    path = [ rover ] ++ lib.optionals useRouter [ pkgs.router ];
     environment.CONFIG = config;
     serviceConfig.StateDirectory = "rover";
 
@@ -148,12 +154,16 @@ in
       cp ${config}/* .
       chmod -R u+w .
 
-      # FIXME use this instead of dev mode
-      rover supergraph compose --config ./supergraph_config.yaml --output supergraph.graphql
+      rover supergraph compose --config ./supergraph_config.yaml --output ./supergraph.graphql
 
-      #FIXME don't use rover in dev mode!
-      exec rover dev --supergraph-config ./supergraph_config.yaml --polling-interval 10 --elv2-license accept --router-config ./router_config.yaml
+    '' + (if useRouter then ''
+      exec router --supergraph ./supergraph.graphql --config ./router_config.yaml \
+        --anonymous-telemetry-disabled --listen 127.0.0.1:4000
+      #--log trace --dev
+    '' else ''
+      exec rover dev --supergraph-config ./supergraph_config.yaml --polling-interval 10 \
+        --elv2-license accept --router-config ./router_config.yaml
       #--log debug
-    '';
+    '');
   };
 }

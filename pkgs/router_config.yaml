@@ -13,3 +13,7 @@ cors:
   match_origins:
     # HTTPS via ngrok service
     - "^https://([a-z0-9]+[-]?)*.ngrok-free.app$"
+
+# `rover dev` would add this
+#health_check:
+#  enabled: false
