@@ -89,6 +89,7 @@
           ({
             _module.args = {
               packages = self.packages.${system};
+              inherit nixpkgs;
             };
           })
         ];

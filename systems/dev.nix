@@ -1,4 +1,4 @@
-{ pkgs, packages, ... }:
+{ pkgs, packages, nixpkgs, ... }:
 {
   networking.hostName = "borgnetzwerk-dev";
   boot.isContainer = true;
@@ -9,6 +9,18 @@
 
   environment.systemPackages = with pkgs; [
     rover
+  ];
+
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
+  nix.registry.nixpkgs = { flake = nixpkgs; };
+  environment.etc.current-nixpkgs.source = nixpkgs;
+  nix.nixPath = [
+    "nixpkgs=/etc/current-nixpkgs"
+    # keep the other default values
+    "nixos-config=/etc/nixos/configuration.nix"
+    "/nix/var/nix/profiles/per-user/root/channels"
   ];
 
   services.nginx = {
