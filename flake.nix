@@ -2,7 +2,7 @@
   description = "Software for WissKommWiki, 'A digital knowledge infrastructure to provide information on scientific videos and podcasts'";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     systems.url = "github:nix-systems/default-linux";
     flake-utils.url = "github:numtide/flake-utils";
     flake-utils.inputs.systems.follows = "systems";
