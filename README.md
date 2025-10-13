@@ -101,7 +101,8 @@ Update searchsnail
 Additional information
 ----------------------
 
-- If you want to update multiple components, feel free to combine the steps, e.g. `nix flake update` and `run-container.sh`.
+- If you want to update multiple components, feel free to combine the steps, e.g. use `nix flake update --commit-lock-file`
+  to update all the inputs and run `run-container.sh` only once.
 - If you want to update the software without pushing it to Github, you can point the flake input to a local repository.
   For example: `nix flake update --override-input searchsnail /path/to/local/searchsnail`
 
