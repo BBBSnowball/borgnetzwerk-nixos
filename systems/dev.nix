@@ -1,4 +1,4 @@
-{ lib, pkgs, packages, nixpkgs, ... }:
+{ lib, pkgs, config, packages, nixpkgs, ... }:
 let
   # slow build but more suitable for production use
   useRouter = true;
@@ -53,6 +53,18 @@ in
         tryFiles = "$uri =404";
       };
     };
+
+    virtualHosts.integrationindri = {
+      listen = [ {
+        addr = "127.0.0.1";
+        port = 5000;
+      } ];
+
+      locations."/".extraConfig = ''
+        uwsgi_pass unix://${config.services.uwsgi.runDir}/integrationindri/uwsgi.sock;
+        include ${pkgs.nginx}/conf/uwsgi_params;
+      '';
+    };
   };
   systemd.services.nginx.serviceConfig = {
     LoadCredential = [
@@ -70,16 +82,39 @@ in
     serviceConfig.DynamicUser = true;
   };
 
-  systemd.services.integrationindri = {
-    after = [ "network.target" ];
-    wantedBy = [ "multi-user.target" ];
+  #systemd.services.integrationindri = {
+  #  after = [ "network.target" ];
+  #  wantedBy = [ "multi-user.target" ];
 
-    environment.DATADIR = "/var/lib/integrationindri";
-    serviceConfig = {
-      ExecStart = ''${packages.integrationindri}/bin/integrationindri'';
-      DynamicUser = true;
-      StateDirectory = "integrationindri";
+  #  environment.DATADIR = "/var/lib/integrationindri";
+  #  serviceConfig = {
+  #    ExecStart = ''${packages.integrationindri}/bin/integrationindri'';
+  #    DynamicUser = true;
+  #    StateDirectory = "integrationindri";
+  #  };
+  #};
+
+  services.uwsgi = {
+    enable = true;
+    plugins = [ "python3" ];
+    instance = {
+      type = "normal";
+      pythonPackages = _: [ packages.integrationindri ];
+      module = "server:app";
+      env = [
+        "DATADIR=/var/lib/integrationindri"
+      ];
+
+      socket = "${config.services.uwsgi.runDir}/integrationindri/uwsgi.sock";
+      #socketGroup = "nginx";
+      #immediate-gid = "nginx";
+      chmod-socket = "777";
     };
+  };
+  systemd.services.uwsgi = {
+    serviceConfig.StateDirectory = "integrationindri";
+    aliases = [ "integrationindri.service" ];
+    serviceConfig.ExecStartPre = "!${pkgs.coreutils}/bin/install -d ${config.services.uwsgi.runDir}/integrationindri -m 0750 -o uwsgi -g nginx";
   };
 
   systemd.services.ngrok = {
@@ -109,7 +144,7 @@ in
         "domain:/root/ngrok-domain.txt"
       ];
       # provide default to make missing file for LoadCredential not fatal
-      SetCredential = [ "authtoken.yml:" "domain:https://invalid" ];
+      SetCredential = [ "authtoken.yml:1" "domain:https://invalid" ];
     };
   };
 

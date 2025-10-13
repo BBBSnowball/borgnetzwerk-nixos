@@ -26,6 +26,7 @@ Start the container:
 3. Obtain a root shell in the container: `sudo nixos-container root-login borg-dev`
 4. Only for the dev container: Add your ngrok token (see below) and then restart the container.
 5. You can control the container with `nixos-container` and via the systemd service `container@borg-dev.service`.
+6. Open in browser: http://localhost:8000
 
 
 Add your ngrok token
@@ -38,6 +39,18 @@ Create an account and then create the following files in the dev container:
    `ngrok config add-authtoken ...`
 3. Write the dev domain into the file `/root/ngrok-domain.txt`
   (without any trailing slash)
+
+
+Services in the dev container
+=============================
+
+- dashboardduck, via nginx, port 8000
+- integrationindri, via nginx and uWSGI, port 5000
+    - nginx is talking to uWSGI via socket /run/uwsgi/integrationindri/uwsgi.sock
+    - This service is also exposed via ngrok.
+- searchsnail, via Tomcat, port 8080
+- Apollo Router (GraphQL), port 4000
+    - systemd service is called `rover`, which is the associated CLI tool.
 
 
 How to update the software
