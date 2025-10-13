@@ -42,7 +42,7 @@
       packages = rec {
         dashboardduck = pkgs.callPackage ./pkgs/dashboardduck/dashboardduck.nix { src = src-dashboardduck; };
         searchsnail = pkgs.callPackage ./pkgs/searchsnail/searchsnail.nix { src = src-searchsnail; };
-        integrationindri = pkgs.callPackage ./pkgs/integrationindri/integrationindri.nix { src = src-integrationindri; };
+        integrationindri = pkgs.python3Packages.callPackage ./pkgs/integrationindri/integrationindri.nix { src = src-integrationindri; };
         rover-config = pkgs.callPackage ./pkgs/rover/rover-config.nix { inherit packages; };
 
         #pip2nix = let
